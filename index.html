@@ -221,6 +221,7 @@ input::placeholder{color:var(--muted);font-weight:500}
 .pill.on{background:#f0fdf4;color:#15803d;border-color:#bbf7d0}
 .pill.off{background:var(--row);color:var(--muted);border-color:var(--border);font-weight:600}
 [data-theme="dark"] .pill.on{background:#1a2e1a;color:#86efac;border-color:#4a7c4a}
+.svc-logo{width:14px;height:14px;object-fit:contain;display:inline-block;vertical-align:middle;border-radius:3px}
 
 /* RESULT CARDS */
 .result-card{background:var(--surface);border:1.5px solid var(--border);border-radius:11px;overflow:hidden;cursor:pointer;transition:border-color .2s,box-shadow .2s,background .25s;user-select:none}
@@ -414,16 +415,23 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:10px
           <div class="drop-toggle-switch" id="darkSwitch"></div>
         </div>
         <div class="drop-section">Proxys tiers utilisés</div>
+        <div class="drop-toggle" onclick="toggleThirdPartyProxies(event)" title="Activer/désactiver les proxys tiers (corsproxy.io et allorigins.win)">
+          <div class="drop-toggle-left">
+            <span class="drop-toggle-icon">🔀</span>
+            <span class="drop-toggle-label">Proxys tiers (corsproxy / allorigins)</span>
+          </div>
+          <div class="drop-toggle-switch" id="tppSwitch"></div>
+        </div>
         <div class="proxy-row" onclick="showProxyDetail('corsproxy')">
           <span class="proxy-row-icon">🔀</span>
           <span class="proxy-row-title">corsproxy.io</span>
-          <span class="proxy-row-tag">⚠️ Tiers</span>
+          <span class="proxy-row-tag" id="tppTagCors" style="background:#e5e7eb;color:#4b5563;border-color:#d1d5db">🚫 Désactivé</span>
           <span class="proxy-row-chev">›</span>
         </div>
         <div class="proxy-row" onclick="showProxyDetail('allorigins')">
           <span class="proxy-row-icon">🔀</span>
           <span class="proxy-row-title">allorigins.win</span>
-          <span class="proxy-row-tag">⚠️ Tiers</span>
+          <span class="proxy-row-tag" id="tppTagAll" style="background:#e5e7eb;color:#4b5563;border-color:#d1d5db">🚫 Désactivé</span>
           <span class="proxy-row-chev">›</span>
         </div>
         <div class="proxy-row" onclick="showProxyDetail('dnsgoogle')">
@@ -565,10 +573,36 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:10px
 <footer><div class="powered">Powered by <span>LeNulosDeN1</span> Engineer (Au SMIC)</div></footer>
 
 <script>
+// ── Feature flags ──
+// Proxys tiers (corsproxy.io / allorigins.win) — désactivés par défaut.
+// Activables à l'exécution via l'interrupteur dans le menu Options
+// (préférence persistée dans localStorage).
+let ENABLE_THIRD_PARTY_PROXIES=(()=>{try{return localStorage.getItem('tpp_enabled')==='1';}catch{return false;}})();
+function isThirdPartyProxiesEnabled(){return ENABLE_THIRD_PARTY_PROXIES;}
+function syncThirdPartyProxiesUI(){
+  const on=ENABLE_THIRD_PARTY_PROXIES;
+  const sw=document.getElementById('tppSwitch');if(sw)sw.classList.toggle('on',on);
+  const tagOn={text:'✅ Activé',bg:'#dcfce7',color:'#15803d',border:'#bbf7d0'};
+  const tagOff={text:'🚫 Désactivé',bg:'#e5e7eb',color:'#4b5563',border:'#d1d5db'};
+  const t=on?tagOn:tagOff;
+  ['tppTagCors','tppTagAll'].forEach(id=>{const el=document.getElementById(id);if(!el)return;el.textContent=t.text;el.style.background=t.bg;el.style.color=t.color;el.style.borderColor=t.border;});
+  if(typeof PROXY_DATA!=='undefined'){
+    const d=on
+      ?'✅ Activé. Les requêtes peuvent être relayées par ce proxy tiers en cas d\'échec direct (CORS). Désactivable depuis le menu Options.'
+      :'🚫 Désactivé par défaut. Aucune requête n\'est envoyée à ce proxy tiers. Réactivable depuis le menu Options.';
+    PROXY_DATA.corsproxy.desc=d;PROXY_DATA.allorigins.desc=d;
+  }
+}
+function toggleThirdPartyProxies(e){
+  if(e){e.stopPropagation();}
+  ENABLE_THIRD_PARTY_PROXIES=!ENABLE_THIRD_PARTY_PROXIES;
+  try{localStorage.setItem('tpp_enabled',ENABLE_THIRD_PARTY_PROXIES?'1':'0');}catch{}
+  syncThirdPartyProxiesUI();
+}
 // ── Proxy data ──
 const PROXY_DATA={
-  corsproxy:{title:'corsproxy.io',desc:'Contournement CORS pour les endpoints Microsoft OpenID Connect. Les requêtes sont passées en lecture seule — seul l\'URL Microsoft est transmis au proxy.',url:'https://corsproxy.io/',isTiers:true},
-  allorigins:{title:'allorigins.win',desc:'Proxy de secours utilisé si corsproxy.io échoue. Seule la réponse JSON de l\'endpoint Microsoft OpenID est transmise — aucune donnée utilisateur.',url:'https://api.allorigins.win/',isTiers:true},
+  corsproxy:{title:'corsproxy.io',desc:'🚫 Désactivé par défaut. Aucune requête n\'est envoyée à ce proxy tiers. Pour le réactiver, passer ENABLE_THIRD_PARTY_PROXIES à true dans le code.',url:'https://corsproxy.io/',isTiers:true},
+  allorigins:{title:'allorigins.win',desc:'🚫 Désactivé par défaut. Aucune requête n\'est envoyée à ce proxy tiers. Pour le réactiver, passer ENABLE_THIRD_PARTY_PROXIES à true dans le code.',url:'https://api.allorigins.win/',isTiers:true},
   dnsgoogle:{title:'dns.google',desc:'API DNS-over-HTTPS de Google (DoH). Utilisée pour résoudre MX, SPF, DKIM, DMARC, DNSSEC, BIMI et MTA-STS. Aucune donnée personnelle transmise — seulement le nom de domaine.',url:'https://dns.google/resolve',isTiers:false},
   rdap:{title:'rdap.org',desc:'Service RDAP public (Registration Data Access Protocol). Utilisé pour récupérer les données WHOIS : registrar, serveurs NS, dates de création/expiration. Lecture seule.',url:'https://rdap.org/domain/',isTiers:false},
   mslogin:{title:'login.microsoftonline.com',desc:'Endpoint public officiel Microsoft. Utilisé pour détecter le Tenant ID (OpenID Connect), le type de compte (pro/MSA) et valider le GUID du tenant.',url:'https://login.microsoftonline.com/common/.well-known/openid-configuration',isTiers:false},
@@ -625,6 +659,8 @@ function toggleDark(){
     syncDarkUI(e.matches);
   });
 })();
+// init third-party proxies UI
+syncThirdPartyProxiesUI();
 
 // ── Collapsible ──
 function toggleCollapsible(bodyId,arrowId){
@@ -793,8 +829,8 @@ async function checkMicrosoft(domain){
   if(realmData?.NameSpaceType==='Consumer'||realmData?.account_type?.toLowerCase()==='consumer')return null;
   const direct=await fetchJsonC(`https://login.microsoftonline.com/${domain}/.well-known/openid-configuration`,'ms',8000);
   if(direct){const c=extractGuid(direct.issuer)||extractGuid(direct.token_endpoint)||extractGuid(direct.authorization_endpoint);if(c&&!MS_GENERIC_GUIDS.has(c.toLowerCase())&&direct.issuer?.includes(c)){oidcData=direct;tenantId=c;tenantValid=true;}}
-  if(!tenantId){for(const fn of[()=>fetchJsonC(`https://corsproxy.io/?url=${encodeURIComponent(`https://login.microsoftonline.com/${domain}/.well-known/openid-configuration`)}`,'ms',8000),async()=>{const w=await fetchJsonC(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://login.microsoftonline.com/${domain}/.well-known/openid-configuration`)}`,'ms',8000);return w?.contents?JSON.parse(w.contents):null;}]){try{const d=await fn();if(d){const c=extractGuid(d.issuer)||extractGuid(d.token_endpoint)||extractGuid(d.authorization_endpoint);if(c&&!MS_GENERIC_GUIDS.has(c.toLowerCase())&&d.issuer?.includes(c)){if(!oidcData)oidcData=d;tenantId=c;tenantValid=true;break;}}}catch{}}}
-  if(!tenantId){for(const fn of[()=>fetchTextC(`https://login.microsoftonline.com/${domain}/federationmetadata/2007-06/federationmetadata.xml`,'ms',8000),()=>fetchTextC(`https://corsproxy.io/?url=${encodeURIComponent(`https://login.microsoftonline.com/${domain}/federationmetadata/2007-06/federationmetadata.xml`)}`,'ms',8000),async()=>{const w=await fetchJsonC(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://login.microsoftonline.com/${domain}/federationmetadata/2007-06/federationmetadata.xml`)}`,'ms',8000);return w?.contents||null;}]){try{const x=await fn();if(x){const c=extractGuid(x);if(c&&!MS_GENERIC_GUIDS.has(c.toLowerCase())){const v=await validateTenantGuid(c);if(v){tenantId=c;tenantValid=true;break;}}}}catch{}}}
+  if(!tenantId){for(const fn of (ENABLE_THIRD_PARTY_PROXIES?[()=>fetchJsonC(`https://corsproxy.io/?url=${encodeURIComponent(`https://login.microsoftonline.com/${domain}/.well-known/openid-configuration`)}`,'ms',8000),async()=>{const w=await fetchJsonC(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://login.microsoftonline.com/${domain}/.well-known/openid-configuration`)}`,'ms',8000);return w?.contents?JSON.parse(w.contents):null;}]:[])){try{const d=await fn();if(d){const c=extractGuid(d.issuer)||extractGuid(d.token_endpoint)||extractGuid(d.authorization_endpoint);if(c&&!MS_GENERIC_GUIDS.has(c.toLowerCase())&&d.issuer?.includes(c)){if(!oidcData)oidcData=d;tenantId=c;tenantValid=true;break;}}}catch{}}}
+  if(!tenantId){for(const fn of [()=>fetchTextC(`https://login.microsoftonline.com/${domain}/federationmetadata/2007-06/federationmetadata.xml`,'ms',8000),...(ENABLE_THIRD_PARTY_PROXIES?[()=>fetchTextC(`https://corsproxy.io/?url=${encodeURIComponent(`https://login.microsoftonline.com/${domain}/federationmetadata/2007-06/federationmetadata.xml`)}`,'ms',8000),async()=>{const w=await fetchJsonC(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://login.microsoftonline.com/${domain}/federationmetadata/2007-06/federationmetadata.xml`)}`,'ms',8000);return w?.contents||null;}]:[])]){try{const x=await fn();if(x){const c=extractGuid(x);if(c&&!MS_GENERIC_GUIDS.has(c.toLowerCase())){const v=await validateTenantGuid(c);if(v){tenantId=c;tenantValid=true;break;}}}}catch{}}}
   if(tenantId&&!tenantValid){tenantValid=await validateTenantGuid(tenantId);if(!tenantValid)tenantId=null;}
   const isPro=realmData&&realmData.NameSpaceType!=='Consumer'&&realmData.account_type?.toLowerCase()!=='consumer';
   if(tenantId||isPro)return{tenantId,tenantValid,namespaceType:realmData?.NameSpaceType||null,federationType:realmData?.federation_protocol||null,cloudInstance:realmData?.cloud_instance_name||'microsoftonline.com',issuer:oidcData?.issuer||null,tokenEndpoint:oidcData?.token_endpoint||null,authorizationEndpoint:oidcData?.authorization_endpoint||null,userInfoEndpoint:oidcData?.userinfo_endpoint||null};
@@ -867,17 +903,18 @@ async function checkHealth(domain){
 
 async function checkOtherTenants(domain,dns){
   const t=[],ms=(dns.mx||[]).join(' ').toLowerCase(),ss=(dns.spf||'').toLowerCase(),ts=(dns.txt||[]).join(' ').toLowerCase();
-  t.push({name:'Google Workspace',icon:'🔵',on:ms.includes('google.com')||ms.includes('googlemail.com')});
+  const L=(f,n)=>`<img class="svc-logo" src="${f}" alt="${n}" loading="lazy">`;
+  t.push({name:'Google Workspace',icon:L('Google.png','Google Workspace'),on:ms.includes('google.com')||ms.includes('googlemail.com')});
   const odoo=ts.includes('odoo')||ss.includes('odoo')||ms.includes('odoo')||(await dnsQuery(`odoo.${domain}`,'CNAME')).length>0;
-  t.push({name:'Odoo',icon:'🟣',on:odoo});
-  t.push({name:'Salesforce',icon:'☁️',on:ts.includes('salesforce')||ss.includes('salesforce')});
+  t.push({name:'Odoo',icon:L('Odoo.png','Odoo'),on:odoo});
+  t.push({name:'Salesforce',icon:L('Salesforce.png','Salesforce'),on:ts.includes('salesforce')||ss.includes('salesforce')});
   const hs=ts.includes('hubspot')||ss.includes('hubspot')||(await dnsQuery(`hs1._domainkey.${domain}`,'CNAME')).length>0;
-  t.push({name:'HubSpot',icon:'🟠',on:hs});
-  t.push({name:'Zendesk',icon:'💚',on:ts.includes('zendesk')||ss.includes('zendesk')});
-  t.push({name:'Slack',icon:'💬',on:ts.includes('slack')||ss.includes('slack-mail')});
+  t.push({name:'HubSpot',icon:L('HubSpot.png','HubSpot'),on:hs});
+  t.push({name:'Zendesk',icon:L('Zendesk.png','Zendesk'),on:ts.includes('zendesk')||ss.includes('zendesk')});
+  t.push({name:'Slack',icon:L('Slack.png','Slack'),on:ts.includes('slack')||ss.includes('slack-mail')});
   const atl=ts.includes('atlassian')||!!(dns.txt||[]).find(x=>x.toLowerCase().includes('atlassian-domain-verification'));
-  t.push({name:'Atlassian',icon:'🔷',on:atl});
-  t.push({name:'Amazon SES',icon:'🟡',on:ss.includes('amazonses')||ms.includes('amazonses')});
+  t.push({name:'Atlassian',icon:L('Atlassian.png','Atlassian'),on:atl});
+  t.push({name:'Amazon SES',icon:L('Amazon.png','Amazon SES'),on:ss.includes('amazonses')||ms.includes('amazonses')});
   return t;
 }
 
@@ -906,7 +943,7 @@ async function checkHost(domain){
     return{registrar,ns,status:r.status||[],created,expires,updated,hostName:detectHostFromNS(ns.join(' ').toLowerCase(),registrar||'')};
   }
   try{const r=await fetchJsonC(`https://rdap.org/domain/${domain}`,'host',12000);if(r)return parseRdap(r);}catch{}
-  try{const w=await fetchJsonC(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://rdap.org/domain/${domain}`)}`,'host',12000);if(w?.contents)return parseRdap(JSON.parse(w.contents));}catch{}
+  if(ENABLE_THIRD_PARTY_PROXIES){try{const w=await fetchJsonC(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://rdap.org/domain/${domain}`)}`,'host',12000);if(w?.contents)return parseRdap(JSON.parse(w.contents));}catch{}}
   return null;
 }
 
@@ -1036,7 +1073,7 @@ function exportReport(){
   lines.push('');
   if(r.otherServices){
     lines.push('── SERVICES DÉTECTÉS ──────────────────');
-    r.otherServices.filter(s=>s.on).forEach(s=>lines.push('  '+s.icon+' '+s.name));
+    r.otherServices.filter(s=>s.on).forEach(s=>lines.push('  • '+s.name));
     if(!r.otherServices.some(s=>s.on))lines.push('  Aucun service tiers détecté');
     lines.push('');
   }
