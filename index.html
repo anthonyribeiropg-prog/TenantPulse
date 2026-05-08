@@ -1032,9 +1032,9 @@ function exportReport(){
   lines.push('  Tech RUN MW N1 — '+new Date(r.analysedAt).toLocaleString('fr-FR'));
   lines.push('');lines.push(' DOMAINE : '+r.domain);lines.push('');
   if(r.microsoft&&r.microsoft.tenantId){
-    if(r.microsoft.namespaceType)lines.push('Namespace     : '+r.microsoft.namespaceType);
-    if(r.microsoft.cloudInstance)lines.push('Cloud         : '+r.microsoft.cloudInstance);
-    if(r.microsoft.federationType)lines.push('Fédération    : '+r.microsoft.federationType);
+    if(r.microsoft.namespaceType)lines.push('Namespace: '+r.microsoft.namespaceType);
+    if(r.microsoft.cloudInstance)lines.push('Cloud: '+r.microsoft.cloudInstance);
+    if(r.microsoft.federationType)lines.push('Fédération: '+r.microsoft.federationType);
   } else lines.push('Tenant MS365  : ❌ Non détecté');
   lines.push('');
   if(r.health){
