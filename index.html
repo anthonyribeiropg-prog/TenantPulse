@@ -904,7 +904,7 @@ async function checkHealth(domain){
 async function checkOtherTenants(domain,dns){
   const t=[],ms=(dns.mx||[]).join(' ').toLowerCase(),ss=(dns.spf||'').toLowerCase(),ts=(dns.txt||[]).join(' ').toLowerCase();
   const L=(f,n)=>`<img class="svc-logo" src="${f}" alt="${n}" loading="lazy">`;
-  t.push({name:'Google Workspace',icon:L('Google.png','Google Workspace'),on:ms.includes('google.com')||ms.includes('googlemail.com')});
+  t.push({name:'Google Workspace',icon:L('google.png','Google Workspace'),on:ms.includes('google.com')||ms.includes('googlemail.com')});
   const odoo=ts.includes('odoo')||ss.includes('odoo')||ms.includes('odoo')||(await dnsQuery(`odoo.${domain}`,'CNAME')).length>0;
   t.push({name:'Odoo',icon:L('Odoo.png','Odoo'),on:odoo});
   t.push({name:'Salesforce',icon:L('Salesforce.png','Salesforce'),on:ts.includes('salesforce')||ss.includes('salesforce')});
