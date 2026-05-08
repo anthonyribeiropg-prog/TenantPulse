@@ -1030,9 +1030,8 @@ function exportReport(){
   lines.push('═══════════════════════════════════════');
   lines.push('  RAPPORT DIAGNOSTIC MICROSOFT 365');
   lines.push('  Tech RUN MW N1 — '+new Date(r.analysedAt).toLocaleString('fr-FR'));
-  lines.push('═══════════════════════════════════════');
-  lines.push('');lines.push('🌐 DOMAINE : '+r.domain);lines.push('');
-  lines.push('── MICROSOFT 365 ──────────────────────');
+  lines.push('');lines.push(' DOMAINE : '+r.domain);lines.push('');
+  lines.push('MICROSOFT 365:');
   if(r.microsoft&&r.microsoft.tenantId){
     lines.push('Tenant ID     : '+r.microsoft.tenantId);
     lines.push('Valide        : '+(r.microsoft.tenantValid?'✅ Oui':'❌ Non'));
@@ -1043,8 +1042,8 @@ function exportReport(){
   } else lines.push('Tenant MS365  : ❌ Non détecté');
   lines.push('');
   if(r.health){
-    lines.push('── DNS & SÉCURITÉ ─────────────────────');
-    lines.push('Score santé   : '+r.health.score+'%'+(r.health.dmarcIsQuarantine?' ⭐':''));
+    lines.push('DNS & SÉCURITÉ:');
+    lines.push('Score santé   : '+r.health.score+'%');
     const hmap={ok:'✅',warn:'⚠️',error:'❌',info:'ℹ️'};
     r.health.checks.forEach(c=>lines.push('  '+(hmap[c.type]||'·')+' '+c.title));
     lines.push('');
@@ -1056,7 +1055,7 @@ function exportReport(){
     if(r.dns.mx&&r.dns.mx.length)lines.push('MX             : '+r.dns.mx.join(', '));
   }
   lines.push('');
-  lines.push('── HÉBERGEUR ──────────────────────────');
+  lines.push('HÉBERGEUR:');
   if(r.host){
     lines.push('Hébergeur     : '+(r.host.hostName||'Inconnu'));
     lines.push('Registrar     : '+(r.host.registrar||'—'));
@@ -1065,14 +1064,8 @@ function exportReport(){
     if(r.host.ns&&r.host.ns.length)lines.push('NS            : '+r.host.ns.join(', '));
   } else lines.push('Hébergeur     : '+(r.fullDone?'Non récupéré':'Non analysé (analyse rapide)'));
   lines.push('');
-  lines.push('── DOUBLON MSA ────────────────────────');
-  if(r.duplicate){
-    lines.push('Compte MSA personnel : '+(r.duplicate.hasPersonal?'⚠️ Détecté':'✅ Aucun'));
-    lines.push('Compte gratuit       : '+(r.duplicate.hasFreeAccount?'⚠️ Détecté':'✅ Aucun'));
-  } else lines.push('(Non analysé — lancez l\'analyse complète)');
-  lines.push('');
   if(r.otherServices){
-    lines.push('── SERVICES DÉTECTÉS ──────────────────');
+    lines.push('SERVICES DÉTECTÉS:');
     r.otherServices.filter(s=>s.on).forEach(s=>lines.push('  • '+s.name));
     if(!r.otherServices.some(s=>s.on))lines.push('  Aucun service tiers détecté');
     lines.push('');
