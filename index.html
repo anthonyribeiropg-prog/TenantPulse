@@ -287,7 +287,7 @@ input::placeholder{color:var(--muted);font-weight:500}
 .score-ring svg{width:52px;height:52px;transform:rotate(-90deg)}
 .score-ring .trk{fill:none;stroke:var(--border);stroke-width:5}
 .score-ring .fll{fill:none;stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset .9s ease}
-.score-ring .lbl{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:12px;font-weight:800;color:#121212}
+.score-ring .lbl{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:12px;font-weight:800;color:#FFFFFF}
 .score-info{flex:1}
 .score-title{font-size:12.5px;font-weight:800;margin-bottom:2px}
 .score-desc{font-size:10px;font-weight:600;color:var(--soft);line-height:1.4}
@@ -984,7 +984,7 @@ function buildScoreRing(score,dmarcIsQuarantine){
   const color=score<40?'#dc2626':score<70?'#d97706':'#16a34a';
   const lbl=score>=80?'Excellent':score>=60?'Bon':score>=40?'Moyen':'Faible';
   const lblColor=score<40?'#dc2626':score<70?'#b45309':'#15803d';
-  const bg=score<40?'#fff1f2':score<70?'#fffbeb':'#f0fdf4';
+  const bg=score<40?'#1A1010':score<70?'#12100C':'#0C120C';
   const starNote=dmarcIsQuarantine?'<div style="font-size:9.5px;font-weight:700;color:#b45309;margin-top:3px">⭐ DMARC p=quarantine — score plein, p=reject recommandé</div>':'';
   const d=document.createElement('div');d.className='score-block';d.style.background=bg;d.style.borderColor=color+'44';
   d.innerHTML=`<div class="score-ring"><svg viewBox="0 0 54 54"><circle class="trk" cx="27" cy="27" r="${r}"/><circle class="fll" cx="27" cy="27" r="${r}" stroke="${color}" stroke-dasharray="${circ}" stroke-dashoffset="${offset}"/></svg><div class="lbl">${score}%${dmarcIsQuarantine?'<span style="font-size:8px">⭐</span>':''}</div></div><div class="score-info"><div class="score-title" style="color:${lblColor}">Sécurité : ${lbl}</div><div class="score-desc">MX · SPF · DMARC · DKIM · DNSSEC · MTA-STS · BIMI</div>${starNote}</div>`;
