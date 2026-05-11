@@ -513,7 +513,7 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:10px
   </aside>
 </div>
 
-<footer><div class="powered">PInternal Prototype by <span> ARI </span> Claud AI x Copilot</div></footer>
+<footer><div class="powered">Powered by <span>Tech RUN MW N1</span> Engineer (Au SMIC)</div></footer>
 
 <script>
 const PROXY_DATA = {
@@ -795,15 +795,25 @@ async function checkDNS(domain) {
   const txt = await fetchJson(`https://dns.google/resolve?name=${domain}&type=TXT`); if (txt) { const all = (txt.Answer || []).map(a => a.data).filter(Boolean); r.spf = all.find(t => t.includes('v=spf1')) || null; r.txt = all; }
   const ms = r.mx.join(' ').toLowerCase(), ss = (r.spf || '').toLowerCase(), ts = r.txt.join(' ').toLowerCase();
   const providers = [
-    [['google','googlemail'], ['google'], 'Google Workspace'],
-    [['outlook','microsoft'], ['microsoft','protection.outlook'], 'Microsoft 365'],
-    [['amazonses'], ['amazonses'], 'Amazon SES'],
-    [['ovh'], [], 'OVH Mail'],
-    [['ionos','1and1'], ['ionos','1&1'], 'IONOS / 1&1'],
-    [['protonmail'], ['protonmail'], 'Proton Mail'],
-    [['zoho'], [], 'Zoho Mail'],
-    [['mimecast'], [], 'Mimecast'],
-    [['pphosted','proofpoint'], [], 'Proofpoint'],
+    [['google','googlemail'],              ['google'],                      'Google Workspace'],
+    [['outlook','microsoft','protection.outlook'], ['microsoft','protection.outlook'], 'Microsoft 365'],
+    [['amazonses'],                        ['amazonses'],                   'Amazon SES'],
+    [['ovh'],                              [],                              'OVH Mail'],
+    [['ionos','1and1'],                    ['ionos','1&1'],                 'IONOS / 1&1'],
+    [['protonmail'],                       ['protonmail'],                  'Proton Mail'],
+    [['zoho'],                             ['zoho'],                        'Zoho Mail'],
+    [['mimecast'],                         ['mimecast'],                    'Mimecast'],
+    [['pphosted','proofpoint'],            ['proofpoint'],                  'Proofpoint'],
+    [['mailinblack'],                      ['mailinblack','spf.mailinblack'],'Mailinblack'],
+    [['vadecloud','vadesecure'],           ['vadecloud','vadesecure'],      'Vade Secure'],
+    [['barracudanetworks'],                ['barracudanetworks'],           'Barracuda'],
+    [['hornetsecurity'],                   ['hornetsecurity'],              'Hornetsecurity'],
+    [['spamtitan'],                        ['spamtitan'],                   'SpamTitan'],
+    [['brevo','sendinblue'],               ['brevo','sendinblue'],          'Brevo'],
+    [['mailjet'],                          ['mailjet'],                     'Mailjet'],
+    [['sendgrid'],                         ['sendgrid'],                    'SendGrid'],
+    [['mandrillapp','mandrill'],           ['mandrillapp'],                 'Mailchimp / Mandrill'],
+    [['postmarkapp'],                      ['postmarkapp','spf.mtasv'],     'Postmark'],
   ];
   for (const [mxKeys, spfKeys, name] of providers) {
     if (mxKeys.some(k => ms.includes(k)) || spfKeys.some(k => ss.includes(k)) || (name === 'Proton Mail' && ts.includes('protonmail')))
@@ -872,17 +882,31 @@ async function checkHealth(domain) {
 async function checkOtherTenants(domain, dns) {
   const t  = [], ms = (dns.mx || []).join(' ').toLowerCase(), ss = (dns.spf || '').toLowerCase(), ts = (dns.txt || []).join(' ').toLowerCase();
   const L  = (f, n) => `<img class="svc-logo" src="${f}" alt="${n}" loading="lazy">`;
-  t.push({ name:'Google Workspace', icon:L('google.png','Google Workspace'),     on: ms.includes('google.com') || ms.includes('googlemail.com') });
+
+  // Messagerie & sécurité email
+  t.push({ name:'Google Workspace', icon:L('google.png','Google Workspace'),         on: ms.includes('google.com') || ms.includes('googlemail.com') });
+  t.push({ name:'Mailinblack',      icon:L('mailinblack.jpeg','Mailinblack'),         on: ms.includes('mailinblack') || ss.includes('mailinblack') });
+  t.push({ name:'Mimecast',         icon:L('Mimecast.png','Mimecast'),               on: ms.includes('mimecast') || ss.includes('mimecast') });
+  t.push({ name:'Proofpoint',       icon:L('Proofpoint.png','Proofpoint'),           on: ms.includes('pphosted') || ms.includes('proofpoint') || ss.includes('proofpoint') });
+  t.push({ name:'Vade Secure',      icon:L('Vade.png','Vade Secure'),                on: ms.includes('vadecloud') || ms.includes('vadesecure') || ss.includes('vadecloud') });
+  t.push({ name:'Barracuda',        icon:L('Barracuda.png','Barracuda'),             on: ms.includes('barracudanetworks') || ss.includes('barracudanetworks') });
+  t.push({ name:'Hornetsecurity',   icon:L('Hornetsecurity.png','Hornetsecurity'),   on: ms.includes('hornetsecurity') || ss.includes('hornetsecurity') });
+  t.push({ name:'Brevo',            icon:L('Brevo.png','Brevo'),                     on: ss.includes('brevo') || ss.includes('sendinblue') || ms.includes('sendinblue') });
+  t.push({ name:'Mailjet',          icon:L('Mailjet.png','Mailjet'),                 on: ss.includes('mailjet') || (await dnsQuery(`mailjet._domainkey.${domain}`, 'TXT')).length > 0 });
+  t.push({ name:'SendGrid',         icon:L('SendGrid.png','SendGrid'),               on: ss.includes('sendgrid') || (await dnsQuery(`s1._domainkey.${domain}`, 'CNAME')).length > 0 });
+  t.push({ name:'Postmark',         icon:L('Postmark.png','Postmark'),               on: ss.includes('spf.mtasv') || ss.includes('postmarkapp') });
+
+  // CRM & SaaS
   const odoo = ts.includes('odoo') || ss.includes('odoo') || ms.includes('odoo') || (await dnsQuery(`odoo.${domain}`, 'CNAME')).length > 0;
-  t.push({ name:'Odoo',             icon:L('Odoo.png','Odoo'),                   on: odoo });
-  t.push({ name:'Salesforce',       icon:L('Salesforce.png','Salesforce'),        on: ts.includes('salesforce') || ss.includes('salesforce') });
+  t.push({ name:'Odoo',             icon:L('Odoo.png','Odoo'),                       on: odoo });
+  t.push({ name:'Salesforce',       icon:L('Salesforce.png','Salesforce'),           on: ts.includes('salesforce') || ss.includes('salesforce') });
   const hs = ts.includes('hubspot') || ss.includes('hubspot') || (await dnsQuery(`hs1._domainkey.${domain}`, 'CNAME')).length > 0;
-  t.push({ name:'HubSpot',          icon:L('HubSpot.png','HubSpot'),              on: hs });
-  t.push({ name:'Zendesk',          icon:L('Zendesk.png','Zendesk'),              on: ts.includes('zendesk')    || ss.includes('zendesk') });
-  t.push({ name:'Slack',            icon:L('Slack.png','Slack'),                  on: ts.includes('slack')      || ss.includes('slack-mail') });
+  t.push({ name:'HubSpot',          icon:L('HubSpot.png','HubSpot'),                 on: hs });
+  t.push({ name:'Zendesk',          icon:L('Zendesk.png','Zendesk'),                 on: ts.includes('zendesk') || ss.includes('zendesk') });
+  t.push({ name:'Slack',            icon:L('Slack.png','Slack'),                     on: ts.includes('slack') || ss.includes('slack-mail') });
   const atl = ts.includes('atlassian') || !!(dns.txt || []).find(x => x.toLowerCase().includes('atlassian-domain-verification'));
-  t.push({ name:'Atlassian',        icon:L('Atlassian.png','Atlassian'),          on: atl });
-  t.push({ name:'Amazon SES',       icon:L('Amazon.png','Amazon SES'),            on: ss.includes('amazonses')  || ms.includes('amazonses') });
+  t.push({ name:'Atlassian',        icon:L('Atlassian.png','Atlassian'),             on: atl });
+  t.push({ name:'Amazon SES',       icon:L('Amazon.png','Amazon SES'),               on: ss.includes('amazonses') || ms.includes('amazonses') });
   return t;
 }
 
