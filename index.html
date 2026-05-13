@@ -68,7 +68,12 @@ nav{background:#4B3FBE!important;padding:0 24px;height:52px;display:flex;align-i
 .drop-menu{position:absolute;right:0;top:calc(100% + 10px);background:var(--surface);border:1.5px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.18);width:230px;max-height:calc(100vh - 80px);overflow-y:auto;display:none;z-index:500}
 .nav-dropdown.open .drop-menu{display:block;animation:dropIn .18s ease}
 @keyframes dropIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-.drop-section{padding:8px 12px 5px;font-size:var(--text-xs);font-weight:500;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);border-bottom:1px solid var(--border);background:var(--row)}
+.drop-section-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 12px 5px;font-size:var(--text-xs);font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);border:none;background:var(--row);cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s}
+.drop-section-btn:hover{background:var(--acc-hover)}
+.drop-section-btn .ds-arrow{font-size:8px;transition:transform .2s;display:inline-block;opacity:.6}
+.drop-section-btn.open .ds-arrow{transform:rotate(180deg)}
+.drop-section-body{overflow:hidden;max-height:0;transition:max-height .25s ease,opacity .2s ease;opacity:0;pointer-events:none}
+.drop-section-body.open{max-height:500px;opacity:1;pointer-events:auto}
 .drop-toggle{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:background .12s;border-bottom:1px solid var(--border);justify-content:space-between}
 .drop-toggle:hover{background:var(--row)}
 .drop-toggle-left{display:flex;align-items:center;gap:8px}
@@ -201,6 +206,15 @@ input::placeholder{color:var(--muted);font-weight:500}
 .confidence-badge.high{background:rgba(34,197,94,.2);border-color:rgba(34,197,94,.4)}
 .confidence-badge.medium{background:rgba(251,191,36,.2);border-color:rgba(251,191,36,.4)}
 .confidence-badge.low{background:rgba(239,68,68,.2);border-color:rgba(239,68,68,.4)}
+.conf-info-btn{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(255,255,255,.5);background:transparent;color:rgba(255,255,255,.75);font-size:9px;font-weight:700;font-family:var(--font);cursor:pointer;flex-shrink:0;line-height:1;padding:0;transition:background .15s,border-color .15s;user-select:none;margin-left:2px}
+.conf-info-btn:hover{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.9)}
+.conf-tooltip{position:fixed;z-index:900;background:#1a1a2e;border:1.5px solid rgba(255,255,255,.18);border-radius:10px;padding:12px 14px;width:240px;box-shadow:0 8px 28px rgba(0,0,0,.45);display:none;pointer-events:none}
+.conf-tooltip.visible{display:block;animation:dropIn .15s ease}
+.conf-tooltip-title{font-size:var(--text-xs);font-weight:700;color:#fff;margin-bottom:8px;letter-spacing:.03em}
+.conf-tooltip-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:var(--text-xs);font-weight:500}
+.conf-tooltip-row:last-child{border-bottom:none}
+.conf-tooltip-label{color:rgba(255,255,255,.6)}
+.conf-tooltip-val{font-weight:700;color:#fff;font-size:var(--text-xs)}
 .dup-alert{display:flex;align-items:flex-start;gap:9px;margin-top:12px;padding:10px 12px;border-radius:8px}
 .dup-alert.warn{background:rgba(251,191,36,.16);border:1.5px solid rgba(251,191,36,.45)}
 .dup-alert.ok{background:rgba(34,197,94,.12);border:1.5px solid rgba(34,197,94,.3)}
@@ -396,10 +410,65 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:10px
   nav{padding:0 16px}
   .nav-badge{display:none}
 }
+.cache-indicator{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:20px;padding:3px 10px;font-size:var(--text-xs);font-weight:500;color:rgba(255,255,255,.7);white-space:nowrap;transition:background .3s,border-color .3s,color .3s}
+.cache-indicator.state-active{background:rgba(34,197,94,.18);border-color:rgba(34,197,94,.45);color:#86efac}
+.cache-indicator.state-inactive{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);color:rgba(255,255,255,.45)}
+.cache-indicator.state-clearing{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.45);color:#fca5a5}
+.cache-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;transition:background .3s}
+.cache-indicator.state-active   .cache-dot{background:#86efac;animation:cachePulse 2s ease-in-out infinite}
+.cache-indicator.state-inactive .cache-dot{background:rgba(255,255,255,.3);animation:none}
+.cache-indicator.state-clearing .cache-dot{background:#fca5a5;animation:cacheSpin .6s linear infinite}
+@keyframes cachePulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes cacheSpin{0%{opacity:1}50%{opacity:.2}100%{opacity:1}}
+.cache-clear-bar{position:fixed;top:0;left:0;width:100%;height:3px;z-index:9999;pointer-events:none;background:transparent}
+.cache-clear-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,#4B3FBE,#7c74f0,#86efac);border-radius:0 2px 2px 0;transition:width .05s linear}
+.cache-legend{padding:8px 14px 10px;display:flex;flex-direction:column;gap:6px;border-bottom:1px solid var(--border)}
+.cache-legend-row{display:flex;align-items:center;gap:8px}
+.cache-legend-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.cache-legend-dot.active{background:#86efac;animation:cachePulse 2s ease-in-out infinite}
+.cache-legend-dot.inactive{background:var(--muted)}
+.cache-legend-dot.clearing{background:#fca5a5;animation:cacheSpin .6s linear infinite}
+.cache-legend-label{font-size:var(--text-xs);font-weight:500;color:var(--soft);line-height:1.45}
+.cache-legend-label strong{color:var(--text);font-weight:700}
+.drop-section+.cache-legend{margin-top:0}
+.storage-modal{width:420px;max-width:95vw}
+.storage-entry{background:var(--row);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px}
+.storage-entry-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.storage-entry-key{font-size:var(--text-xs);font-weight:700;color:var(--text);font-family:'Courier New',monospace}
+.storage-entry-size{font-size:var(--text-xs);font-weight:500;color:var(--muted)}
+.storage-entry-val{font-size:var(--text-xs);font-weight:500;color:var(--soft);word-break:break-all;line-height:1.5;max-height:80px;overflow-y:auto;font-family:'Courier New',monospace}
+.storage-entry-del{background:transparent;border:1px solid var(--border);border-radius:5px;font-size:var(--text-xs);color:var(--muted);cursor:pointer;padding:1px 7px;transition:all .15s}
+.storage-entry-del:hover{border-color:#dc2626;color:#dc2626}
+.storage-empty-msg{font-size:var(--text-xs);color:var(--muted);text-align:center;padding:20px 0;font-style:italic}
+.confirm-modal-overlay{position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center}
+.confirm-modal-overlay.open{display:flex;animation:fadeInModal .15s ease}
+@keyframes fadeInModal{from{opacity:0}to{opacity:1}}
+.confirm-modal{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:20px 22px;width:300px;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.confirm-modal-title{font-size:var(--text-base);font-weight:700;color:var(--text);margin-bottom:6px}
+.confirm-modal-desc{font-size:var(--text-xs);font-weight:500;color:var(--soft);line-height:1.55;margin-bottom:16px}
+.confirm-modal-actions{display:flex;flex-direction:column;gap:7px}
+.confirm-btn-delete{width:100%;padding:9px;background:#dc2626;border:none;border-radius:8px;font-family:var(--font);font-size:var(--text-xs);font-weight:700;color:#fff;cursor:pointer;transition:background .15s}
+.confirm-btn-delete:hover{background:#b91c1c}
+.confirm-btn-keep{width:100%;padding:9px;background:transparent;border:1.5px solid var(--border);border-radius:8px;font-family:var(--font);font-size:var(--text-xs);font-weight:500;color:var(--soft);cursor:pointer;transition:all .15s}
+.confirm-btn-keep:hover{border-color:var(--text);color:var(--text)}
+.confirm-btn-cancel{width:100%;padding:7px;background:transparent;border:none;font-family:var(--font);font-size:var(--text-xs);font-weight:500;color:var(--muted);cursor:pointer;transition:color .15s}
+.confirm-btn-cancel:hover{color:var(--text)}
 </style>
-</head>
 <body>
 
+<div class="confirm-modal-overlay" id="deleteConfirmModal">
+  <div class="confirm-modal">
+    <div class="confirm-modal-title">Désactiver l'historique</div>
+    <div class="confirm-modal-desc">Des entrées sont présentes dans le cache local. Souhaitez-vous les supprimer ?</div>
+    <div class="confirm-modal-actions">
+      <button class="confirm-btn-delete" id="btnDisableDelete">🗑 Désactiver et supprimer les données</button>
+      <button class="confirm-btn-keep"   id="btnDisableKeep">Désactiver sans supprimer</button>
+      <button class="confirm-btn-cancel" id="btnDisableCancel">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<div class="cache-clear-bar" id="cacheClearBar"><div class="cache-clear-bar-fill" id="cacheClearFill"></div></div>
 <div class="topbar">Analyse instantanée &nbsp;|&nbsp; Décisions immédiates</div>
 
 <nav>
@@ -408,62 +477,92 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:10px
     TenantPulse
   </a>
   <div class="nav-right">
+    <div class="cache-indicator state-inactive" id="cacheIndicator">
+      <span class="cache-dot"></span>
+      <span id="cacheIndicatorLabel">Cache inactif</span>
+    </div>
     <div class="nav-badge">v0.5</div>
     <div class="nav-dropdown" id="mainDropdown">
-      <button class="nav-drop-btn" onclick="toggleDropdown()">
+      <button class="nav-drop-btn" id="mainDropBtn">
         <img src="option.png" width="14" height="14" alt="" style="display:inline-block;vertical-align:middle;flex-shrink:0;"> Paramètres & Confidentialité <span class="drop-arrow">▾</span>
       </button>
       <div class="drop-menu" id="dropMenu">
-        <div class="drop-section">Apparence</div>
-        <div class="drop-toggle" onclick="toggleDark()">
-          <div class="drop-toggle-left">
-            <span class="drop-toggle-icon">🎨</span>
-            <span class="drop-toggle-label" id="darkLabel">Mode sombre</span>
+
+        <!-- Apparence -->
+        <button class="drop-section-btn open" data-drop-section>
+          <span>🎨 Apparence</span><span class="ds-arrow">▾</span>
+        </button>
+        <div class="drop-section-body open">
+          <div class="drop-toggle" id="toggleDarkBtn">
+            <div class="drop-toggle-left">
+              <span class="drop-toggle-icon">🎨</span>
+              <span class="drop-toggle-label" id="darkLabel">Mode sombre</span>
+            </div>
+            <div class="drop-toggle-switch" id="darkSwitch"></div>
           </div>
-          <div class="drop-toggle-switch" id="darkSwitch"></div>
         </div>
-        <div class="drop-section">Données</div>
-        <div class="drop-toggle" onclick="setHistoryEnabled(!isHistoryEnabled())">
-          <div class="drop-toggle-left">
-            <span class="drop-toggle-icon">🕐</span>
-            <span class="drop-toggle-label">Historique des Tenant ID</span>
+
+        <!-- Données -->
+        <button class="drop-section-btn open" data-drop-section>
+          <span>💾 Données</span><span class="ds-arrow">▾</span>
+        </button>
+        <div class="drop-section-body open">
+          <div class="drop-toggle" id="toggleHistoryBtn">
+            <div class="drop-toggle-left">
+              <span class="drop-toggle-icon">🕐</span>
+              <span class="drop-toggle-label">Historique des Tenant ID</span>
+            </div>
+            <div class="drop-toggle-switch" id="historyOptSwitch"></div>
           </div>
-          <div class="drop-toggle-switch" id="historyOptSwitch"></div>
+          <div class="drop-info-row">
+            <span>ℹ️</span>
+            <span>L'historique utilise le stockage local (localStorage) de votre navigateur. Aucune donnée n'est transmise à un serveur.</span>
+          </div>
         </div>
-        <div class="drop-info-row">
-          <span>ℹ️</span>
-          <span>L'historique utilise le stockage local (localStorage) de votre navigateur. Aucune donnée n'est transmise à un serveur.</span>
+
+        <!-- Indicateur de cache -->
+        <button class="drop-section-btn" data-drop-section>
+          <span>🔵 Indicateur de cache</span><span class="ds-arrow">▾</span>
+        </button>
+        <div class="drop-section-body">
+          <div class="cache-legend">
+            <div class="cache-legend-row"><span class="cache-legend-dot active"></span><span class="cache-legend-label"><strong>X entrée(s) en cache</strong> — historique activé et données présentes</span></div>
+            <div class="cache-legend-row"><span class="cache-legend-dot inactive"></span><span class="cache-legend-label"><strong>Cache vide</strong> — activé, aucune entrée</span></div>
+            <div class="cache-legend-row"><span class="cache-legend-dot inactive"></span><span class="cache-legend-label"><strong>Cache désactivé</strong> — désactivé, données encore présentes</span></div>
+            <div class="cache-legend-row"><span class="cache-legend-dot inactive"></span><span class="cache-legend-label"><strong>Cache inactif</strong> — désactivé et aucune donnée</span></div>
+            <div class="cache-legend-row"><span class="cache-legend-dot clearing"></span><span class="cache-legend-label"><strong>Suppression…</strong> — vidage en cours</span></div>
+          </div>
         </div>
-        <div class="drop-section">APIs utilisées</div>
-        <div class="proxy-row" onclick="showProxyDetail('dnsgoogle')">
-          <span class="proxy-row-icon">🌐</span>
-          <span class="proxy-row-title">dns.google</span>
-          <span class="proxy-row-chev">›</span>
+
+        <!-- APIs utilisées -->
+        <button class="drop-section-btn" data-drop-section>
+          <span>🌐 APIs utilisées</span><span class="ds-arrow">▾</span>
+        </button>
+        <div class="drop-section-body">
+          <div class="proxy-row" data-proxy-key="dnsgoogle"><span class="proxy-row-icon">🌐</span><span class="proxy-row-title">dns.google</span><span class="proxy-row-chev">›</span></div>
+          <div class="proxy-row" data-proxy-key="rdap"><span class="proxy-row-icon">🌐</span><span class="proxy-row-title">rdap.org</span><span class="proxy-row-chev">›</span></div>
+          <div class="proxy-row" data-proxy-key="mslogin"><span class="proxy-row-icon">🔍</span><span class="proxy-row-title">login.microsoftonline.com</span><span class="proxy-row-chev">›</span></div>
+          <div class="proxy-row" data-proxy-key="googleaccounts"><span class="proxy-row-icon">🔵</span><span class="proxy-row-title">accounts.google.com</span><span class="proxy-row-chev">›</span></div>
+          <div class="drop-info-row"><span>✅</span><span>Requêtes directes vers APIs officielles Microsoft, Google DNS, Google Accounts et RDAP. Aucun proxy tiers. Aucune donnée stockée côté serveur.</span></div>
         </div>
-        <div class="proxy-row" onclick="showProxyDetail('rdap')">
-          <span class="proxy-row-icon">🌐</span>
-          <span class="proxy-row-title">rdap.org</span>
-          <span class="proxy-row-chev">›</span>
+
+        <!-- Stockage local -->
+        <button class="drop-section-btn" data-drop-section>
+          <span>🗄️ Stockage local</span><span class="ds-arrow">▾</span>
+        </button>
+        <div class="drop-section-body">
+          <div class="proxy-row" id="btnShowStorage">
+            <span class="proxy-row-icon">💾</span>
+            <span class="proxy-row-title">Inspecter les données stockées</span>
+            <span class="proxy-row-chev">›</span>
+          </div>
         </div>
-        <div class="proxy-row" onclick="showProxyDetail('mslogin')">
-          <span class="proxy-row-icon">🔍</span>
-          <span class="proxy-row-title">login.microsoftonline.com</span>
-          <span class="proxy-row-chev">›</span>
-        </div>
-        <div class="proxy-row" onclick="showProxyDetail('googleaccounts')">
-          <span class="proxy-row-icon">🔵</span>
-          <span class="proxy-row-title">accounts.google.com</span>
-          <span class="proxy-row-chev">›</span>
-        </div>
-        <div class="drop-info-row">
-          <span>✅</span>
-          <span>Requêtes directes vers APIs officielles Microsoft, Google DNS, Google Accounts et RDAP. Aucun proxy tiers. Aucune donnée stockée côté serveur.</span>
-        </div>
+
       </div>
     </div>
-    <div class="proxy-detail-overlay" id="proxyOverlay" onclick="hideProxyDetail()">
-      <div class="proxy-detail-panel" id="proxyDetailPanel" onclick="event.stopPropagation()">
-        <div class="proxy-detail-back" onclick="hideProxyDetail()">‹ Retour</div>
+    <div class="proxy-detail-overlay" id="proxyOverlay">
+      <div class="proxy-detail-panel" id="proxyDetailPanel">
+        <div class="proxy-detail-back" id="proxyDetailBack">‹ Retour</div>
         <div class="proxy-detail-title" id="pdTitle"></div>
         <div class="proxy-detail-desc" id="pdDesc"></div>
         <div class="proxy-detail-url" id="pdUrl"></div>
@@ -471,6 +570,21 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:10px
     </div>
   </div>
 </nav>
+
+<!-- Storage inspector modal -->
+<div class="confirm-modal-overlay" id="storageModal">
+  <div class="confirm-modal storage-modal" id="storageModalInner">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="confirm-modal-title" style="margin:0">💾 Données stockées localement</div>
+      <button class="panel-close" id="btnStorageClose">✕</button>
+    </div>
+    <div id="storageInspectorBody" style="display:flex;flex-direction:column;gap:8px;max-height:380px;overflow-y:auto"></div>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;gap:8px">
+      <button class="confirm-btn-delete" style="flex:1" id="btnClearAllStorage">🗑 Tout vider</button>
+      <button class="confirm-btn-keep"   style="flex:1" id="btnStorageCloseFooter">Fermer</button>
+    </div>
+  </div>
+</div>
 
 <div class="app">
   <aside class="sidebar">
@@ -487,11 +601,11 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:10px
       <label class="flabel">Endpoint OpenID Microsoft 365</label>
       <div class="ep-preview" id="endpointPreview">https://login.microsoftonline.com/<span class="domain">domaine.com</span>/.well-known/openid-configuration</div>
       <div class="btn-row">
-        <button class="btn-go" id="checkBtnFast" onclick="checkFast()">
+        <button class="btn-go" id="checkBtnFast">
           <span id="btnFastText"><img src="LOUPE.png" width="14" height="14" alt="" style="display:inline-block;vertical-align:middle;flex-shrink:0;margin-right:4px;">Tenant ID</span>
           <div class="spinner" id="spinnerFast"></div>
         </button>
-        <button class="btn-full-analysis" id="checkBtnFull" onclick="checkFull()">
+        <button class="btn-full-analysis" id="checkBtnFull">
           <span id="btnFullText"><img src="Analyse.png" width="14" height="14" alt="" style="display:inline-block;vertical-align:middle;flex-shrink:0;margin-right:4px;">Analyse complète</span>
           <div class="spinner-blue" id="spinnerFull"></div>
         </button>
@@ -500,84 +614,58 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:10px
         <div class="btn-hint">Rapide — ID MS + DNS de base</div>
         <div class="btn-hint">Complet — WHOIS · sécurité DNS</div>
       </div>
-      <button class="btn-export" id="exportBtn" onclick="exportReport()">📋 Copier le rapport</button>
+      <button class="btn-export" id="exportBtn">📋 Copier le rapport</button>
       <div class="prog-list" id="progList">
-        <div class="p-step" id="step-ms"><span class="p-step-icon"><img src="Microsoft.png" width="14" height="14" alt="Microsoft" style="display:inline-block;vertical-align:middle;flex-shrink:0;"></span><span class="p-step-label">Microsoft 365…</span><button class="p-step-cancel" onclick="cancelStep('ms')">✕ Annuler</button><button class="p-step-retry" onclick="retryStep('ms')">↺ Relancer</button></div>
-        <div class="p-step" id="step-google"><span class="p-step-icon">🔵</span><span class="p-step-label">Google Workspace…</span><button class="p-step-cancel" onclick="cancelStep('google')">✕ Annuler</button><button class="p-step-retry" onclick="retryStep('google')">↺ Relancer</button></div>
-        <div class="p-step" id="step-dns"><span class="p-step-icon">🌐</span><span class="p-step-label">DNS…</span><button class="p-step-cancel" onclick="cancelStep('dns')">✕ Annuler</button><button class="p-step-retry" onclick="retryStep('dns')">↺ Relancer</button></div>
-        <div class="p-step" id="step-health"><span class="p-step-icon">🛡️</span><span class="p-step-label">Sécurité…</span><button class="p-step-cancel" onclick="cancelStep('health')">✕ Annuler</button><button class="p-step-retry" onclick="retryStep('health')">↺ Relancer</button></div>
-        <div class="p-step" id="step-others"><span class="p-step-icon">🔍</span><span class="p-step-label">Autres services…</span><button class="p-step-cancel" onclick="cancelStep('others')">✕ Annuler</button><button class="p-step-retry" onclick="retryStep('others')">↺ Relancer</button></div>
-        <div class="p-step" id="step-host"><span class="p-step-icon">🏠</span><span class="p-step-label">Hébergeur…</span><button class="p-step-cancel" onclick="cancelStep('host')">✕ Annuler</button><button class="p-step-retry" onclick="retryStep('host')">↺ Relancer</button></div>
+        <div class="p-step" id="step-ms"><span class="p-step-icon"><img src="Microsoft.png" width="14" height="14" alt="Microsoft" style="display:inline-block;vertical-align:middle;flex-shrink:0;"></span><span class="p-step-label">Microsoft 365…</span><button class="p-step-cancel" data-step="ms">✕ Annuler</button><button class="p-step-retry" data-step="ms">↺ Relancer</button></div>
+        <div class="p-step" id="step-google"><span class="p-step-icon">🔵</span><span class="p-step-label">Google Workspace…</span><button class="p-step-cancel" data-step="google">✕ Annuler</button><button class="p-step-retry" data-step="google">↺ Relancer</button></div>
+        <div class="p-step" id="step-dns"><span class="p-step-icon">🌐</span><span class="p-step-label">DNS…</span><button class="p-step-cancel" data-step="dns">✕ Annuler</button><button class="p-step-retry" data-step="dns">↺ Relancer</button></div>
+        <div class="p-step" id="step-health"><span class="p-step-icon">🛡️</span><span class="p-step-label">Sécurité…</span><button class="p-step-cancel" data-step="health">✕ Annuler</button><button class="p-step-retry" data-step="health">↺ Relancer</button></div>
+        <div class="p-step" id="step-others"><span class="p-step-icon">🔍</span><span class="p-step-label">Autres services…</span><button class="p-step-cancel" data-step="others">✕ Annuler</button><button class="p-step-retry" data-step="others">↺ Relancer</button></div>
+        <div class="p-step" id="step-host"><span class="p-step-icon">🏠</span><span class="p-step-label">Hébergeur…</span><button class="p-step-cancel" data-step="host">✕ Annuler</button><button class="p-step-retry" data-step="host">↺ Relancer</button></div>
       </div>
       <div class="err-box" id="errBox"></div>
 
       <div class="msa-check-block" style="margin-top:0">
-        <button class="collapsible-btn" onclick="toggleCollapsible('historyBody','historyArrow')">
+        <button class="collapsible-btn" id="btnHistoryToggle">
           <span>🕐 Historique des Tenant ID</span>
           <span class="coll-arrow" id="historyArrow">▾</span>
         </button>
         <div class="collapsible-body" id="historyBody">
           <div id="historyList"><div class="history-empty">Aucune analyse effectuée</div></div>
-          <button class="btn-clear-history" onclick="clearHistory()">🗑 Effacer l'historique</button>
+          <button class="btn-clear-history" id="btnClearHistory">🗑 Effacer l'historique</button>
         </div>
       </div>
 
       <div class="privacy-block">
-        <button class="collapsible-btn" onclick="toggleCollapsible('privacyBody','privacyArrow')">
+        <button class="collapsible-btn" id="btnPrivacyToggle">
           <span>🔒 Confidentialité</span>
           <span class="coll-arrow" id="privacyArrow">▾</span>
         </button>
         <div class="collapsible-body" id="privacyBody">
           <div class="privacy-body">
-
             <p class="privacy-intro">Cet outil effectue des requêtes <strong>directement depuis votre navigateur</strong> vers des APIs publiques. Aucun serveur intermédiaire ne reçoit ou ne conserve vos données.</p>
-
             <div>
               <div class="privacy-section-lbl">APIs contactées lors d'une analyse</div>
               <div class="privacy-api-list">
-                <div class="privacy-api-item">
-                  <span class="privacy-api-item-icon">🌐</span>
-                  <span class="privacy-api-item-name">dns.google</span>
-                  <span class="privacy-api-item-tag">DNS</span>
-                </div>
-                <div class="privacy-api-item">
-                  <span class="privacy-api-item-icon">🔍</span>
-                  <span class="privacy-api-item-name">login.microsoftonline.com</span>
-                  <span class="privacy-api-item-tag">Microsoft</span>
-                </div>
-                <div class="privacy-api-item">
-                  <span class="privacy-api-item-icon">🔵</span>
-                  <span class="privacy-api-item-name">accounts.google.com</span>
-                  <span class="privacy-api-item-tag">Google</span>
-                </div>
-                <div class="privacy-api-item">
-                  <span class="privacy-api-item-icon">🌐</span>
-                  <span class="privacy-api-item-name">rdap.org</span>
-                  <span class="privacy-api-item-tag">WHOIS</span>
-                </div>
+                <div class="privacy-api-item"><span class="privacy-api-item-icon">🌐</span><span class="privacy-api-item-name">dns.google</span><span class="privacy-api-item-tag">DNS</span></div>
+                <div class="privacy-api-item"><span class="privacy-api-item-icon">🔍</span><span class="privacy-api-item-name">login.microsoftonline.com</span><span class="privacy-api-item-tag">Microsoft</span></div>
+                <div class="privacy-api-item"><span class="privacy-api-item-icon">🔵</span><span class="privacy-api-item-name">accounts.google.com</span><span class="privacy-api-item-tag">Google</span></div>
+                <div class="privacy-api-item"><span class="privacy-api-item-icon">🌐</span><span class="privacy-api-item-name">rdap.org</span><span class="privacy-api-item-tag">WHOIS</span></div>
               </div>
             </div>
-
             <div>
               <div class="privacy-section-lbl">Ressources chargées lors d'une analyse</div>
               <div class="privacy-api-list">
-                <div class="privacy-api-item">
-                  <span class="privacy-api-item-icon">🖼️</span>
-                  <span class="privacy-api-item-name">google.com/s2/favicons</span>
-                  <span class="privacy-api-item-tag">Icônes</span>
-                </div>
+                <div class="privacy-api-item"><span class="privacy-api-item-icon">🖼️</span><span class="privacy-api-item-name">google.com/s2/favicons</span><span class="privacy-api-item-tag">Icônes</span></div>
               </div>
             </div>
-
             <div class="privacy-storage-row">
               <span class="privacy-storage-icon">💾</span>
               <span>Aucun stockage par défaut. L'historique (optionnel) utilise uniquement le <strong>localStorage</strong> de votre navigateur — jamais transmis.</span>
             </div>
-
-            <button class="privacy-cta" onclick="toggleDropdown(); toggleCollapsible('privacyBody','privacyArrow');">
+            <button class="privacy-cta" id="btnPrivacyCta">
               ⚙️ Détail de chaque connexion dans Paramètres & Confidentialité
             </button>
-
           </div>
         </div>
       </div>
@@ -599,7 +687,7 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:10px
   <aside class="detail-panel" id="detailPanel">
     <div class="panel-head">
       <span class="panel-title" id="panelTitle">Détails</span>
-      <button class="panel-close" onclick="closePanel()">✕</button>
+      <button class="panel-close" id="btnPanelClose">✕</button>
     </div>
     <div class="panel-body" id="panelBody"></div>
   </aside>
@@ -615,12 +703,19 @@ const PROXY_DATA = {
   googleaccounts: {title:'accounts.google.com', desc:'Endpoint public officiel Google. Utilisé pour détecter Google Workspace via OpenID Connect (issuer, token & authorization endpoints). Lecture seule.', url:'https://accounts.google.com/.well-known/openid-configuration'},
 };
 
+// ── Drop section toggle ──
+function toggleDropSection(btn) {
+  btn.classList.toggle('open');
+  const body = btn.nextElementSibling;
+  if (body) body.classList.toggle('open');
+}
+
 // ── Dropdown ──
 function toggleDropdown() {
   document.getElementById('mainDropdown').classList.toggle('open');
 }
 document.addEventListener('click', e => {
-  const d = document.getElementById('mainDropdown');
+  const d  = document.getElementById('mainDropdown');
   const ov = document.getElementById('proxyOverlay');
   if (!d.contains(e.target) && !ov.contains(e.target)) {
     d.classList.remove('open');
@@ -683,25 +778,93 @@ function isHistoryEnabled() {
   try { return localStorage.getItem(HISTORY_OPT_KEY) === 'true'; } catch { return false; }
 }
 function setHistoryEnabled(val) {
+  if (!val && isHistoryEnabled()) {
+    // Désactivation — proposer suppression
+    const hasData = loadHistory().length > 0;
+    if (hasData) {
+      showDeleteConfirm();
+      return;
+    }
+  }
   try { localStorage.setItem(HISTORY_OPT_KEY, val ? 'true' : 'false'); } catch {}
   syncHistoryToggleUI();
   if (!val) { saveHistory([]); renderHistory(); }
   else renderHistory();
+  syncCacheIndicator();
+}
+function showDeleteConfirm() {
+  const modal = document.getElementById('deleteConfirmModal');
+  if (modal) modal.classList.add('open');
+}
+function hideDeleteConfirm() {
+  const modal = document.getElementById('deleteConfirmModal');
+  if (modal) modal.classList.remove('open');
+}
+function confirmDisableAndDelete() {
+  hideDeleteConfirm();
+  try { localStorage.setItem(HISTORY_OPT_KEY, 'false'); } catch {}
+  syncHistoryToggleUI();
+  clearHistory();
+}
+function confirmDisableKeep() {
+  hideDeleteConfirm();
+  try { localStorage.setItem(HISTORY_OPT_KEY, 'false'); } catch {}
+  syncHistoryToggleUI();
+  syncCacheIndicator();
+  renderHistory();
 }
 function syncHistoryToggleUI() {
   const sw = document.getElementById('historyOptSwitch');
   if (sw) sw.classList.toggle('on', isHistoryEnabled());
 }
-function loadHistory()        { try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; } }
-function saveHistory(items)   { try { localStorage.setItem(HISTORY_KEY, JSON.stringify(items)); } catch {} }
+function loadHistory()      { try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; } }
+function saveHistory(items) { try { localStorage.setItem(HISTORY_KEY, JSON.stringify(items)); } catch {} }
 function addToHistory(domain, tenantId) {
   if (!tenantId || !isHistoryEnabled()) return;
   let items = loadHistory().filter(i => i.domain !== domain);
   items.unshift({ domain, tenantId, at: Date.now() });
   saveHistory(items.slice(0, 7));
   renderHistory();
+  syncCacheIndicator();
 }
-function clearHistory() { saveHistory([]); renderHistory(); }
+function clearHistory() {
+  const fill = document.getElementById('cacheClearFill');
+  const ind  = document.getElementById('cacheIndicator');
+  const lbl  = document.getElementById('cacheIndicatorLabel');
+  // State: suppression
+  ind.className = 'cache-indicator state-clearing';
+  lbl.textContent = 'Suppression…';
+  fill.style.transition = 'none'; fill.style.width = '0%';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    fill.style.transition = 'width .5s ease'; fill.style.width = '100%';
+    setTimeout(() => {
+      fill.style.transition = 'width .3s ease'; fill.style.width = '0%';
+      saveHistory([]); renderHistory(); syncCacheIndicator();
+    }, 540);
+  }));
+}
+function syncCacheIndicator() {
+  const ind = document.getElementById('cacheIndicator');
+  const lbl = document.getElementById('cacheIndicatorLabel');
+  if (!ind) return;
+  const enabled = isHistoryEnabled();
+  const items   = loadHistory();
+  const hasData = items.length > 0;
+  if (!enabled && !hasData) {
+    ind.className = 'cache-indicator state-inactive';
+    lbl.textContent = 'Cache inactif';
+  } else if (!enabled && hasData) {
+    // Désactivé mais données encore présentes
+    ind.className = 'cache-indicator state-inactive';
+    lbl.textContent = 'Cache désactivé';
+  } else if (enabled && hasData) {
+    ind.className = 'cache-indicator state-active';
+    lbl.textContent = items.length + ' entrée' + (items.length > 1 ? 's' : '') + ' en cache';
+  } else {
+    ind.className = 'cache-indicator state-inactive';
+    lbl.textContent = 'Cache vide';
+  }
+}
 function relativeTime(ts) {
   const s = Math.floor((Date.now() - ts) / 1000);
   if (s < 60)    return "À l'instant";
@@ -750,7 +913,79 @@ function loadFromHistory(domain) {
 function copyHistoryGuid(guid, btn) {
   navigator.clipboard.writeText(guid).then(() => { btn.textContent = '✅'; setTimeout(() => { btn.textContent = '📋'; }, 1500); });
 }
-window.addEventListener('load', () => { syncHistoryToggleUI(); renderHistory(); });
+// ── Central event binding ──
+function bindEvents() {
+  // Nav dropdown
+  document.getElementById('mainDropBtn').addEventListener('click', toggleDropdown);
+
+  // Confirm modal (disable history)
+  document.getElementById('btnDisableDelete').addEventListener('click', confirmDisableAndDelete);
+  document.getElementById('btnDisableKeep').addEventListener('click', confirmDisableKeep);
+  document.getElementById('btnDisableCancel').addEventListener('click', hideDeleteConfirm);
+
+  // Storage modal
+  document.getElementById('storageModal').addEventListener('click', hideStoragePanel);
+  document.getElementById('storageModalInner').addEventListener('click', e => e.stopPropagation());
+  document.getElementById('btnStorageClose').addEventListener('click', hideStoragePanel);
+  document.getElementById('btnStorageCloseFooter').addEventListener('click', hideStoragePanel);
+  document.getElementById('btnClearAllStorage').addEventListener('click', clearAllStorage);
+  document.getElementById('btnShowStorage').addEventListener('click', showStoragePanel);
+
+  // Dropdown sections toggle
+  document.querySelectorAll('[data-drop-section]').forEach(btn => {
+    btn.addEventListener('click', () => toggleDropSection(btn));
+  });
+
+  // Dark mode toggle
+  document.getElementById('toggleDarkBtn').addEventListener('click', toggleDark);
+
+  // History toggle
+  document.getElementById('toggleHistoryBtn').addEventListener('click', () => setHistoryEnabled(!isHistoryEnabled()));
+
+  // Proxy rows
+  document.querySelectorAll('[data-proxy-key]').forEach(row => {
+    row.addEventListener('click', () => showProxyDetail(row.dataset.proxyKey));
+  });
+
+  // Proxy detail overlay
+  document.getElementById('proxyOverlay').addEventListener('click', hideProxyDetail);
+  document.getElementById('proxyDetailPanel').addEventListener('click', e => e.stopPropagation());
+  document.getElementById('proxyDetailBack').addEventListener('click', hideProxyDetail);
+
+  // Main action buttons
+  document.getElementById('checkBtnFast').addEventListener('click', checkFast);
+  document.getElementById('checkBtnFull').addEventListener('click', checkFull);
+  document.getElementById('exportBtn').addEventListener('click', exportReport);
+
+  // Progress step cancel / retry (event delegation on progList)
+  document.getElementById('progList').addEventListener('click', e => {
+    const cancel = e.target.closest('.p-step-cancel');
+    const retry  = e.target.closest('.p-step-retry');
+    if (cancel) cancelStep(cancel.dataset.step);
+    if (retry)  retryStep(retry.dataset.step);
+  });
+
+  // History collapsible + clear
+  document.getElementById('btnHistoryToggle').addEventListener('click', () => toggleCollapsible('historyBody', 'historyArrow'));
+  document.getElementById('btnClearHistory').addEventListener('click', clearHistory);
+
+  // Privacy collapsible + CTA
+  document.getElementById('btnPrivacyToggle').addEventListener('click', () => toggleCollapsible('privacyBody', 'privacyArrow'));
+  document.getElementById('btnPrivacyCta').addEventListener('click', () => {
+    toggleDropdown();
+    toggleCollapsible('privacyBody', 'privacyArrow');
+  });
+
+  // Panel close
+  document.getElementById('btnPanelClose').addEventListener('click', closePanel);
+}
+
+window.addEventListener('load', () => {
+  bindEvents();
+  syncHistoryToggleUI();
+  renderHistory();
+  syncCacheIndicator();
+});
 
 // ── Panel ──
 let openCardId = null;
@@ -875,14 +1110,106 @@ async function validateTenantGuid(guid) {
   } catch { return false; }
 }
 
+// ── Confidence tooltip ──
+function showConfTooltip(e, confidence, ms) {
+  const tip = document.getElementById('confTooltip');
+  const rows = [
+    { label: 'Tenant ID trouvé',      val: ms?.tenantId    ? '+45 pts ✓' : '0 pts —', earned: !!ms?.tenantId },
+    { label: 'GUID validé Microsoft', val: ms?.tenantValid  ? '+30 pts ✓' : '0 pts —', earned: !!ms?.tenantValid },
+    { label: 'Issuer présent',         val: ms?.issuer       ? '+15 pts ✓' : '0 pts —', earned: !!ms?.issuer },
+    { label: 'Token endpoint',         val: ms?.tokenEndpoint? '+10 pts ✓' : '0 pts —', earned: !!ms?.tokenEndpoint },
+  ];
+  tip.innerHTML = '';
+  const title = document.createElement('div'); title.className = 'conf-tooltip-title'; title.textContent = 'Indice de confiance — ' + confidence + '%';
+  tip.appendChild(title);
+  rows.forEach(r => {
+    const row = document.createElement('div'); row.className = 'conf-tooltip-row';
+    const lbl = document.createElement('span'); lbl.className = 'conf-tooltip-label'; lbl.textContent = r.label;
+    const val = document.createElement('span'); val.className = 'conf-tooltip-val'; val.textContent = r.val;
+    val.style.color = r.earned ? '#86efac' : 'rgba(255,255,255,.35)';
+    row.appendChild(lbl); row.appendChild(val); tip.appendChild(row);
+  });
+  const note = document.createElement('div');
+  note.style.cssText = 'margin-top:8px;padding-top:7px;border-top:1px solid rgba(255,255,255,.1);font-size:var(--text-xs);color:rgba(255,255,255,.38);line-height:1.5;font-style:italic';
+  note.textContent = 'Namespace type non vérifiable depuis TenantPulse (bloqué par CORS navigateur).';
+  tip.appendChild(note);
+  const x = Math.min(e.clientX + 10, window.innerWidth - 260);
+  const y = Math.min(e.clientY + 10, window.innerHeight - 200);
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  tip.classList.add('visible');
+}
+function hideConfTooltip() {
+  const tip = document.getElementById('confTooltip');
+  if (tip) tip.classList.remove('visible');
+}
+document.addEventListener('mouseup', hideConfTooltip);
+
+// ── Storage inspector ──
+function showStoragePanel() {
+  document.getElementById('mainDropdown').classList.remove('open');
+  const body = document.getElementById('storageInspectorBody');
+  body.textContent = '';
+  // Read all localStorage keys
+  const keys = [];
+  try { for (let i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i)); } catch {}
+  if (!keys.length) {
+    const msg = document.createElement('div'); msg.className = 'storage-empty-msg'; msg.textContent = 'Aucune donnée stockée dans ce navigateur.';
+    body.appendChild(msg);
+  } else {
+    keys.sort().forEach(key => {
+      let raw = ''; try { raw = localStorage.getItem(key) || ''; } catch {}
+      const sizeBytes = new Blob([raw]).size;
+      const sizeLabel = sizeBytes < 1024 ? sizeBytes + ' o' : (sizeBytes / 1024).toFixed(1) + ' Ko';
+      // Try to pretty-print JSON
+      let display = raw;
+      try { const parsed = JSON.parse(raw); display = JSON.stringify(parsed, null, 2); } catch {}
+      const entry = document.createElement('div'); entry.className = 'storage-entry';
+      const head  = document.createElement('div'); head.className = 'storage-entry-head';
+      const keyEl = document.createElement('span'); keyEl.className = 'storage-entry-key'; keyEl.textContent = key;
+      const right = document.createElement('div'); right.style.cssText = 'display:flex;align-items:center;gap:6px';
+      const size  = document.createElement('span'); size.className = 'storage-entry-size'; size.textContent = sizeLabel;
+      const del   = document.createElement('button'); del.className = 'storage-entry-del'; del.textContent = '🗑';
+      del.addEventListener('click', () => {
+        try { localStorage.removeItem(key); } catch {}
+        entry.remove();
+        syncCacheIndicator(); syncHistoryToggleUI();
+        if (!document.querySelectorAll('.storage-entry').length) {
+          const msg = document.createElement('div'); msg.className = 'storage-empty-msg'; msg.textContent = 'Aucune donnée stockée dans ce navigateur.';
+          body.appendChild(msg);
+        }
+      });
+      right.appendChild(size); right.appendChild(del);
+      head.appendChild(keyEl); head.appendChild(right);
+      const val = document.createElement('div'); val.className = 'storage-entry-val'; val.textContent = display;
+      entry.appendChild(head); entry.appendChild(val);
+      body.appendChild(entry);
+    });
+  }
+  document.getElementById('storageModal').classList.add('open');
+}
+function hideStoragePanel() {
+  document.getElementById('storageModal').classList.remove('open');
+}
+function clearAllStorage() {
+  try { localStorage.clear(); } catch {}
+  hideStoragePanel();
+  syncCacheIndicator(); syncHistoryToggleUI(); renderHistory();
+  // Trigger clear bar animation
+  const fill = document.getElementById('cacheClearFill');
+  fill.style.transition = 'none'; fill.style.width = '0%';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    fill.style.transition = 'width .5s ease'; fill.style.width = '100%';
+    setTimeout(() => { fill.style.transition = 'width .3s ease'; fill.style.width = '0%'; syncCacheIndicator(); }, 540);
+  }));
+}
+
 function computeConfidence(ms) {
   if (!ms) return 0;
   let score = 0;
-  if (ms.tenantId)                                   score += 40;
+  if (ms.tenantId)                                   score += 45;
   if (ms.tenantValid)                                score += 30;
   if (ms.issuer)                                     score += 15;
   if (ms.tokenEndpoint)                              score += 10;
-  if (ms.namespaceType && ms.namespaceType !== 'Unknown') score += 5;
   return Math.min(score, 100);
 }
 
@@ -1327,6 +1654,11 @@ function renderHero(center, ms, domain, raw, confidence) {
       copyBtn.addEventListener('click', () => copyVal(hid, copyBtn));
       const badge = document.createElement('span'); badge.className = 'confidence-badge ' + confClass;
       badge.textContent = confidence + '% — ' + confLabel;
+      // Info button
+      const infoBtn = document.createElement('button'); infoBtn.className = 'conf-info-btn'; infoBtn.textContent = 'i'; infoBtn.setAttribute('aria-label', 'Détail de l\'indice de confiance');
+      infoBtn.addEventListener('mousedown', (e) => { e.preventDefault(); showConfTooltip(e, confidence, ms); });
+      document.addEventListener('mouseup', hideConfTooltip, { once: false });
+      badge.appendChild(infoBtn);
       guid.appendChild(sp); guid.appendChild(copyBtn); guid.appendChild(badge);
       hero.appendChild(guid);
     } else {
@@ -1748,5 +2080,6 @@ async function checkFull() {
   finally { unlockButtons(); setFullLoading(false); }
 }
 </script>
+<div class="conf-tooltip" id="confTooltip"></div>
 </body>
 </html>
