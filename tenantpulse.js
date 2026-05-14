@@ -275,7 +275,7 @@ window.addEventListener('load', () => {
 // ── Panel ──
 let openCardId = null;
 let lastReport = null;
-let currentState = { domain:null, ms:null, dns:null, goog:null, health:null, others:null, dup:null, host:null, fastDone:false, fullDone:false };
+let currentState = { domain:null, ms:null, dns:null, goog:null, health:null, others:null, host:null, fullDone:false };
 
 function openPanel(id, title, buildFn) {
   const panel   = document.getElementById('detailPanel');
@@ -326,7 +326,6 @@ const STEP_LABELS = {
   dns:    { active:'Récupération DNS…',            done:'DNS ✓',              fail:'DNS — Vide',                   timeout:'DNS — Annulé' },
   health: { active:'Vérification DKIM/DMARC…',    done:'Sécurité analysée ✓',fail:'Sécurité — Partiel',           timeout:'Sécurité — Annulé' },
   others: { active:'Détection services…',          done:'Autres services ✓',  fail:'Services — Partiel',           timeout:'Services — Annulé' },
-  dup:    { active:'Vérification doublon…',        done:'Doublon vérifié ✓',  fail:'Doublon — Non vérifié',        timeout:'Doublon — Annulé' },
   host:   { active:'Recherche hébergeur (WHOIS)…', done:'Hébergeur trouvé ✓', fail:'Hébergeur — Non trouvé',       timeout:'Hébergeur — Annulé' },
 };
 function setStep(id, state, label) {
@@ -474,7 +473,10 @@ function hideStoragePanel() {
   document.getElementById('storageModal').classList.remove('open');
 }
 function clearAllStorage() {
-  try { localStorage.clear(); } catch {}
+  try {
+    localStorage.removeItem(HISTORY_KEY);
+    localStorage.removeItem(HISTORY_OPT_KEY);
+  } catch {}
   hideStoragePanel();
   syncCacheIndicator(); syncHistoryToggleUI(); renderHistory();
   const fill = document.getElementById('cacheClearFill');
@@ -769,7 +771,7 @@ function _hostInitial(letter, color) {
 }
 
 function hostLogo(hostName) {
-  if (!hostName) return { el: _hostInitial('?', '#9ca3af'), imgUrl: null };
+  if (!hostName) return { el: _hostInitial('?', '#9ca3af') };
   const l = hostName.toLowerCase();
   for (const [key, val] of Object.entries(HOST_LOGO_MAP)) {
     if (l.includes(key)) {
@@ -778,10 +780,10 @@ function hostLogo(hostName) {
       const fallback = _hostInitial(val.label.slice(0,2), val.color); fallback.style.display = 'none';
       img.onerror = () => { img.style.display = 'none'; fallback.style.display = 'inline-flex'; };
       wrap.appendChild(img); wrap.appendChild(fallback);
-      return { el: wrap, imgUrl: img.src };
+      return { el: wrap };
     }
   }
-  return { el: _hostInitial(hostName[0]?.toUpperCase() || '?', '#6b7280'), imgUrl: null };
+  return { el: _hostInitial(hostName[0]?.toUpperCase() || '?', '#6b7280') };
 }
 
 // ── FIX #1 : helpers DOM sûrs — remplacent MS_SVG / GG_SVG (innerHTML supprimé) ──
@@ -833,7 +835,9 @@ function addSectionTitle(b, title) {
 }
 function showError(msg) { const b = document.getElementById('errBox'); b.textContent = msg; b.style.display = 'block'; }
 function copyVal(id, btn) {
-  navigator.clipboard.writeText(document.getElementById(id).innerText).then(() => { btn.textContent = '✓ Copié'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 1500); });
+  const el = document.getElementById(id);
+  if (!el) return; // guard : l'élément peut avoir quitté le DOM (panel fermé)
+  navigator.clipboard.writeText(el.innerText).then(() => { btn.textContent = '✓ Copié'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 1500); });
 }
 function lockButtons()     { document.getElementById('checkBtnFast').disabled = true;  document.getElementById('checkBtnFull').disabled = true; }
 function unlockButtons()   { document.getElementById('checkBtnFast').disabled = false; document.getElementById('checkBtnFull').disabled = false; }
@@ -916,7 +920,7 @@ function makeCard({ id, iconEl, iconBg, title, sub, badge, badgeCls, selCls, onC
 }
 
 // ── Hero renderer ──
-function renderHero(center, ms, domain, raw, confidence) {
+function renderHero(ms, domain, confidence) {
   const hero = document.createElement('div'); hero.className = 'tenant-hero';
   const msLogoEl = () => { const i = document.createElement('img'); i.src='Microsoft.png'; i.width=14; i.height=14; i.alt='Microsoft'; i.style.cssText='display:inline-block;vertical-align:middle;flex-shrink:0;opacity:.85;'; return i; };
 
@@ -959,7 +963,7 @@ function renderHero(center, ms, domain, raw, confidence) {
       badge.textContent = confidence + '% — ' + confLabel;
       const infoBtn = document.createElement('button'); infoBtn.className = 'conf-info-btn'; infoBtn.textContent = 'i'; infoBtn.setAttribute('aria-label', 'Détail de l\'indice de confiance');
       infoBtn.addEventListener('mousedown', (e) => { e.preventDefault(); showConfTooltip(e, confidence, ms); });
-      document.addEventListener('mouseup', hideConfTooltip, { once: false });
+      // mouseup global déjà bindé ligne 430 — pas de listener supplémentaire ici
       badge.appendChild(infoBtn);
       guid.appendChild(sp); guid.appendChild(copyBtn); guid.appendChild(badge);
       hero.appendChild(guid);
@@ -1100,10 +1104,8 @@ function exportReport() {
     btn.textContent = '✅ Rapport copié !';
     setTimeout(() => { btn.textContent = '📋 Copier le rapport'; }, 2000);
   }).catch(() => {
-    const ta = document.createElement('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
-    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-    btn.textContent = '✅ Rapport copié !';
-    setTimeout(() => { btn.textContent = '📋 Copier le rapport'; }, 2000);
+    btn.textContent = '⚠ Copiez manuellement';
+    setTimeout(() => { btn.textContent = '📋 Copier le rapport'; }, 3000);
   });
 }
 
@@ -1188,8 +1190,7 @@ async function checkFast() {
   const center = document.getElementById('centerCol'), exportBtn = document.getElementById('exportBtn'), errBox = document.getElementById('errBox');
   errBox.style.display = 'none'; center.innerHTML = ''; closePanel();
   exportBtn.classList.remove('visible'); lastReport = null;
-  currentState = { domain, ms:null, dns:null, goog:null, health:null, others:null, dup:null, host:null, fastDone:false, fullDone:false };
-  lockButtons(); setFastLoading(true);
+  currentState = { domain, ms:null, dns:null, goog:null, health:null, others:null, host:null, fullDone:false };
   showSteps(['ms', 'google', 'dns']);
   try {
     setStep('step-ms', 'active');
@@ -1208,12 +1209,11 @@ async function checkFast() {
     if (!document.getElementById('step-dns').className.includes('timeout')) setStep('step-dns', currentState.dns.mx.length > 0 ? 'done' : 'fail');
 
     document.getElementById('progList').style.display = 'none';
-    currentState.fastDone = true;
     const confidence = computeConfidence(currentState.ms);
     lastReport = { domain, analysedAt: new Date().toISOString(), input: raw, microsoft: currentState.ms, google: currentState.goog, dns: currentState.dns, health: null, otherServices: null, host: null, tenantConfidence: confidence, fullDone: false };
     exportBtn.classList.add('visible');
     if (currentState.ms?.tenantId && currentState.ms.tenantValid) addToHistory(domain, currentState.ms.tenantId);
-    center.appendChild(renderHero(center, currentState.ms, domain, raw, confidence));
+    center.appendChild(renderHero(currentState.ms, domain, confidence));
     if (currentState.dns?.detectedProviders?.length) {
       const pb = document.createElement('div'); pb.className = 'pills-block';
       const pl = document.createElement('div'); pl.className = 'pills-label'; pl.textContent = 'Providers e-mail détectés (DNS)';
@@ -1277,7 +1277,7 @@ async function runFullFromState(raw, domain, ctaBtn) {
     currentState.fullDone = true;
     const confidence = computeConfidence(currentState.ms);
     const oldHero = center.querySelector('.tenant-hero');
-    if (oldHero) center.replaceChild(renderHero(center, currentState.ms, domain, raw, confidence), oldHero);
+    if (oldHero) center.replaceChild(renderHero(currentState.ms, domain, confidence), oldHero);
 
     lastReport = { domain, analysedAt: new Date().toISOString(), input: raw, microsoft: currentState.ms, google: currentState.goog, dns: currentState.dns, health: { score: currentState.health.score, dmarcIsQuarantine: currentState.health.dmarcIsQuarantine, checks: currentState.health.checks.map(c => ({ type:c.t, title:c.title, desc:c.desc })), dkim: { selector1: currentState.health.hasSel1, selector2: currentState.health.hasSel2, allResults: currentState.health.dkimResults } }, otherServices: currentState.others, host: currentState.host, tenantConfidence: confidence, fullDone: true };
     exportBtn.classList.add('visible');
@@ -1327,7 +1327,7 @@ async function checkFull() {
   const center = document.getElementById('centerCol'), exportBtn = document.getElementById('exportBtn'), errBox = document.getElementById('errBox');
   errBox.style.display = 'none'; center.innerHTML = ''; closePanel();
   exportBtn.classList.remove('visible'); lastReport = null;
-  currentState = { domain, ms:null, dns:null, goog:null, health:null, others:null, dup:null, host:null, fastDone:false, fullDone:false };
+  currentState = { domain, ms:null, dns:null, goog:null, health:null, others:null, host:null, fullDone:false };
   lockButtons(); setFullLoading(true);
   showSteps(['ms', 'google', 'dns', 'health', 'others', 'host']);
   ['ms', 'google', 'dns', 'health', 'others', 'host'].forEach(k => setStep('step-' + k, 'pending'));
@@ -1339,12 +1339,12 @@ async function checkFull() {
     setStep('step-others', 'active'); currentState.others = await checkOtherTenants(domain, currentState.dns);                 setStep('step-others', 'done');
     setStep('step-host', 'active');   currentState.host   = await checkHost(domain);                                           setStep('step-host', currentState.host ? 'done' : 'fail');
     document.getElementById('progList').style.display = 'none';
-    currentState.fastDone = currentState.fullDone = true;
+    currentState.fullDone = true;
     const confidence = computeConfidence(currentState.ms);
     lastReport = { domain, analysedAt: new Date().toISOString(), input: raw, microsoft: currentState.ms, google: currentState.goog, dns: currentState.dns, health: { score: currentState.health.score, dmarcIsQuarantine: currentState.health.dmarcIsQuarantine, checks: currentState.health.checks.map(c => ({ type:c.t, title:c.title, desc:c.desc })), dkim: { selector1: currentState.health.hasSel1, selector2: currentState.health.hasSel2, allResults: currentState.health.dkimResults } }, otherServices: currentState.others, host: currentState.host, tenantConfidence: confidence, fullDone: true };
     exportBtn.classList.add('visible');
     if (currentState.ms?.tenantId && currentState.ms.tenantValid) addToHistory(domain, currentState.ms.tenantId);
-    center.appendChild(renderHero(center, currentState.ms, domain, raw, confidence));
+    center.appendChild(renderHero(currentState.ms, domain, confidence));
 
     const pb = document.createElement('div'); pb.className = 'pills-block';
     const pl = document.createElement('div'); pl.className = 'pills-label'; pl.textContent = 'Autres services détectés';
