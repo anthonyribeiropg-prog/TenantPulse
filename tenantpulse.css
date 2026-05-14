@@ -42,7 +42,7 @@ nav{background:#4B3FBE!important;padding:0 24px;height:52px;display:flex;align-i
 .nav-logo .nav-logo-icon{height:18px;width:auto;display:block}
 .nav-right{display:flex;align-items:center;gap:6px;position:relative}
 .nav-badge{font-size:var(--text-xs);font-weight:500;color:rgba(255,255,255,.85);background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);padding:3px 9px;border-radius:20px;letter-spacing:.04em}
-
+.favicon {width:22px;height:22px;object-fit:contain;border-radius:4px;display:none;}
 .nav-dropdown{position:relative}
 .nav-drop-btn{background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:20px;padding:3px 10px 3px 8px;cursor:pointer;font-size:var(--text-sm);font-weight:500;color:#fff;font-family:var(--font);display:flex;align-items:center;gap:5px;transition:background .15s;white-space:nowrap}
 .nav-drop-btn:hover{background:rgba(255,255,255,.25)}
