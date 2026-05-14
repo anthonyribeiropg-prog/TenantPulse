@@ -331,7 +331,7 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:10px
 .powered{font-size:var(--text-sm);font-weight:500;color:var(--soft)}
 .powered span{color:var(--blue);font-weight:500}
 
-.msa-check-block{margin-top:12px;border-top:1px solid var(--border);padding-top:10px}
+.msa-check-block{margin-top:20px;border-top:1px solid var(--border);padding-top:14px}
 .collapsible-btn{width:100%;background:var(--row);border:1.5px solid var(--border);border-radius:9px;padding:9px 13px;font-family:var(--font);font-size:var(--text-sm);font-weight:500;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all .15s;text-align:left}
 .collapsible-btn:hover{border-color:var(--blue);background:var(--acc-hover)}
 [data-theme="dark"] .collapsible-btn:hover{border-color:#5b52cc}
