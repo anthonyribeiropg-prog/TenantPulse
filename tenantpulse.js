@@ -841,8 +841,8 @@ function copyVal(id, btn) {
 }
 function lockButtons()     { document.getElementById('checkBtnFast').disabled = true;  document.getElementById('checkBtnFull').disabled = true; }
 function unlockButtons()   { document.getElementById('checkBtnFast').disabled = false; document.getElementById('checkBtnFull').disabled = false; }
-function setFastLoading(on){ document.getElementById('btnFastText').style.display = on ? 'none' : 'inline'; document.getElementById('spinnerFast').style.display = on ? 'inline-block' : 'none'; }
-function setFullLoading(on){ document.getElementById('btnFullText').style.display  = on ? 'none' : 'inline'; document.getElementById('spinnerFull').style.display  = on ? 'inline-block' : 'none'; }
+function setFastLoading(on){ document.getElementById('btnFastText').style.display = on ? 'none' : 'inline-flex'; document.getElementById('spinnerFast').style.display = on ? 'inline-block' : 'none'; }
+function setFullLoading(on){ document.getElementById('btnFullText').style.display  = on ? 'none' : 'inline-flex'; document.getElementById('spinnerFull').style.display  = on ? 'inline-block' : 'none'; }
 
 function buildScoreRing(score, dmarcIsQuarantine) {
   const r      = 22, circ = 2 * Math.PI * r, offset = circ - (score / 100) * circ;
