@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!--
   CSP : 'unsafe-inline' supprimé — le JS est externalisé dans tenantpulse.js.
-  script-src 'self' est actif : seuls les scripts chargés depuis la même origine sont autorisés.
-  Les endpoints rdap.* sont nécessaires : rdap.org peut rediriger vers le registre national du TLD (rdap.nic.fr, rdap.denic.de…).
+  script-src 'self' est actif : seuls les scripts chargés depuis la même origine sont autorisés. "https://rdap..." non intéroger à supprimer
 -->
 <meta http-equiv="Content-Security-Policy" content="
   default-src 'self';
@@ -171,12 +170,11 @@
 <!-- Storage inspector modal -->
 <div class="confirm-modal-overlay" id="storageModal">
   <div class="confirm-modal storage-modal" id="storageModalInner">
-    <div class="storage-modal-header">
-      <div class="confirm-modal-title">💾 Données stockées localement</div>
-      <button class="panel-close" id="btnStorageClose">✕</button>
+    <div>
+      <div class="confirm-modal-title">💾 Données stockées localement</div><button class="panel-close" id="btnStorageClose">✕</button>
     </div>
     <div id="storageInspectorBody"></div>
-    <div class="confirm-modal-actions">
+    <div>
       <button class="confirm-btn-delete" id="btnClearAllStorage">🗑 Tout vider</button>
       <button class="confirm-btn-keep" id="btnStorageCloseFooter">Fermer</button>
     </div>
@@ -190,12 +188,12 @@
       <p>Interface de diagnostic M365 et hygiène DNS, avec traitement local des données.</p>
     </div>
     <div class="sb-body">
-      <label class="flabel" for="emailInput">Adresse e-mail ou domaine</label>
+      <label class="flabel">Adresse e-mail ou domaine</label>
       <div class="input-wrap">
         <input type="text" id="emailInput" placeholder="user@domaine.com ou domaine.com" autocomplete="off"/>
       </div>
       <p class="sb-privacy-note">Seuls le domaine ou l'adresse saisis sont utilisés pour interroger des endpoints publics.*</p>
-      <div class="flabel">Endpoint OpenID Microsoft 365</div>
+      <label class="flabel">Endpoint OpenID Microsoft 365</label>
       <div class="ep-preview" id="endpointPreview">https://login.microsoftonline.com/<span class="domain">domaine.com</span>/.well-known/openid-configuration</div>
       <div class="btn-row">
         <button class="btn-go" id="checkBtnFast">
@@ -203,7 +201,7 @@
           <div class="spinner" id="spinnerFast"></div>
         </button>
         <button class="btn-full-analysis" id="checkBtnFull">
-          <span id="btnFullText"><img src="assets/Analyse.png" width="14" height="14" alt="">Analyse</span>
+          <span id="btnFullText"><img src="assets/Analyse.png" width="14" height="14" alt="">Analyse complète</span>
           <div class="spinner-blue" id="spinnerFull"></div>
         </button>
       </div>
