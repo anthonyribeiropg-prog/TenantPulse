@@ -659,19 +659,7 @@ async function checkHost(domain) {
     const updated = events.find(e => e.eventAction === 'last changed')?.eventDate;
     return { registrar, ns, status: r.status || [], created, expires, updated, hostName: detectHostFromNS(ns.join(' ').toLowerCase(), registrar || '') };
   }
-  try {
-    const ctrl = new AbortController();
-    stepControllers['host'] = ctrl;
-    const tid = setTimeout(() => ctrl.abort(), 12000);
-    // FIX : redirect:'manual' — empêche le navigateur de suivre les redirects de rdap.org
-    // vers des serveurs RDAP tiers (rdap.nic.tv, rdap.nic.io…) non listés dans le CSP.
-    // Si rdap.org redirige → réponse opaqueredirect → on retourne null silencieusement.
-    const resp = await fetch(`https://rdap.org/domain/${domain}`, { signal: ctrl.signal, redirect: 'manual' });
-    clearTimeout(tid); delete stepControllers['host'];
-    if (!resp.ok || resp.type === 'opaqueredirect') return null;
-    const r = await resp.json();
-    return parseRdap(r);
-  } catch {}
+  try { const r = await fetchJsonC(`https://rdap.org/domain/${domain}`, 'host', 12000); if (r) return parseRdap(r); } catch {}
   return null;
 }
 
